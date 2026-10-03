@@ -1,50 +1,42 @@
 # Setting up Simpson Family Health
 
-The app is a static site (GitHub Pages) that keeps everyone's results in a free Supabase database.
-You do this once, and it takes about 15 minutes.
+You do this once. It takes about 10 minutes and nothing needs editing.
 
-## 1. Create the database
+## 1. Supabase (the database)
 
-1. Go to [supabase.com](https://supabase.com), sign in with GitHub and create a **New project**
-   (any name, choose a region near you such as London, save the database password somewhere).
-2. Open **SQL Editor**, paste in the whole of [`supabase/schema.sql`](supabase/schema.sql),
-   **replace the four `..._EMAIL_HERE` placeholders with each person's email**, and click **Run**.
-   (Leave a placeholder in for anyone who won't use the app yet. You can re-run the file later with their email.)
-3. In the SQL Editor again, open a new query, paste in `import-existing-results.sql` (the file Claude gave you,
-   which is not in the repo because it holds the medical data) and click **Run** once. It adds the 391 existing results.
+You've already created the project. In the Supabase dashboard:
 
-## 2. Create everyone's login
+1. **SQL Editor → New query**: paste in the whole of [`supabase/schema.sql`](supabase/schema.sql) and click **Run**.
+2. **SQL Editor → New query**: paste in `import-existing-results.sql` (the file Claude gave you; it isn't in the repo
+   because it holds the medical data) and click **Run** once. It adds the 391 existing results.
+3. **Authentication → Sign In / Providers → Email**: turn **off** “Confirm email” and save.
+   (Supabase's free email service only sends to your own Supabase team, so confirmation emails would never arrive.
+   Leave “Allow new users to sign up” **on**: strangers can make an account but see nothing without the family code.)
+4. **Project Settings → API**: copy the **Project URL** and the **publishable** key (or the **anon public** key on older
+   projects) and send them to Claude, or put them in [`.env`](.env) yourself.
+   Never share the `service_role` / secret key.
 
-**Authentication → Users → Add user → Create new user**, once per person:
-use the same email as in step 1.2, choose a password, and leave **Auto Confirm User** ticked.
-Send each person their password. No emails are sent by Supabase.
+## 2. GitHub (publishing it)
 
-Optional but recommended: **Authentication → Sign In / Providers** → turn off **Allow new users to sign up**.
-(Strangers who sign up already see nothing, but this closes the door entirely.)
+Repo **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+Every push to `main` then checks, builds and publishes the site to https://casimp.github.io/simpson-health/.
 
-To reset a forgotten password later, go to the same Users page, open the person's menu (⋯) and choose a new password.
+## 3. Everyone joins
 
-## 3. Connect the app
+1. **You go first.** Open the site, tap **Create account**, then pick who you are. The first person needs no code.
+2. **Invite the others.** Tap your initial (top right) → **Send invite**. That sends the link and the family code.
+3. **They** open the link, tap **Create account**, enter the code and pick who they are.
+   Someone not on the list (a new partner, say) picks **Someone else** and types their name.
 
-**Project Settings → API**: copy the **Project URL** and the **anon public** key into [`config.js`](config.js) and commit.
-The anon key is designed to be public. The row-level security rules in `schema.sql` are what keep the data private.
-
-## 4. Publish it
-
-GitHub Pages is already switched on for this repo, so once this is merged into `main` (with `config.js` filled in)
-it goes live at `https://casimp.github.io/simpson-health/` within a minute or two.
-
-## 5. Put it on everyone's phone
-
+To put it on a phone's home screen:
 - **iPhone:** open the link in Safari → Share → **Add to Home Screen**.
 - **Android:** open the link in Chrome → ⋮ menu → **Install app** (or *Add to Home screen*).
 
-It then opens full screen from its own icon and stays signed in.
+## Looking after it
 
-## Good to know
-
-- Everyone sees all results, but each person can only add, edit or delete their own. The database enforces this, not just the page.
-- Free Supabase projects pause after a week with no use. If someone sees "Couldn't load the results",
-  open the Supabase dashboard and click **Restore project**.
-- Adding a new kind of test: add an entry to `TESTS` at the top of `app.js` (name, unit, default range).
-- Adding a person: add them to `PEOPLE` in `app.js` and give them a colour in `index.html` (`--name` in `:root`), add a row to `members`, and create their login.
+- **Forgotten password:** Supabase → Authentication → Users → the person's ⋯ menu → set a new password.
+- **Remove someone's access:** delete their login on that Users page. Their results stay, and their person becomes
+  free to be picked again by whoever signs up as them next.
+- **Code leaked?** Tap your initial → **New code**. The old code stops working; people already in are unaffected.
+- **“Couldn’t load the results”:** free Supabase projects pause after a week with no use.
+  Open the Supabase dashboard and click **Restore project**.

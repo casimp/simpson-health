@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.env.local
+*.local
+# Medical data never goes in the repo
+import-*.sql
